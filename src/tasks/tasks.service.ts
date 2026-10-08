@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto.ts';
+import { UpdateTaskDto } from './dto/update-task-dto.ts';
 
 export class Task {
     id: string;
@@ -39,6 +40,16 @@ export class TasksService {
         return newTask;
     }
 
+    update(id: string, updateTaskDto: UpdateTaskDto): Task {
+        const task = this.findById(id);
+
+        if (updateTaskDto.title !== undefined) task.title = updateTaskDto.title;
+        if (updateTaskDto.description !== undefined) task.description = updateTaskDto.description;
+        if (updateTaskDto.isCompleted !== undefined) task.isCompleted = updateTaskDto.isCompleted;
+
+        return task;
+    }
+
     delete(id: string): { message: string } {
         const initialLength = this.tasks.length;
         this.tasks = this.tasks.filter((t) => t.id !== id);
@@ -47,5 +58,6 @@ export class TasksService {
         }
         return { message: `Task with ID: "${id}" deleted successfully.` }
     }
+
 
 }
