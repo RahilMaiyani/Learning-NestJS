@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { Task, TasksService } from './tasks.service.ts';
 import { CreateTaskDto } from './dto/create-task.dto.ts';
 import { UpdateTaskDto } from './dto/update-task-dto.ts';
+import { ApiKeyGuard } from '../guards/api-key.guard.ts';
 
 @Controller('tasks')
 export class TasksController {
@@ -28,8 +29,8 @@ export class TasksController {
         return this.tasksService.update(id, updateTaskDto);
     }
 
-
     @Delete(':id')
+    @UseGuards(ApiKeyGuard)
     @HttpCode(HttpStatus.OK)
     deleteTask(@Param('id') id: string) {
         return this.tasksService.delete(id);
