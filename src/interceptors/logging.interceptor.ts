@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
-import { Observable, tap } from "rxjs";
+import { map, Observable, tap } from "rxjs";
 
-Injectable()
+@Injectable()
 export class LoggingInterceptor implements NestInterceptor {
     private readonly logger = new Logger(LoggingInterceptor.name);
 
@@ -18,6 +18,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
                 this.logger.log(`[${method}] ${url} -> Status: ${statusCode} (+${duration}ms)`);
             }),
+            // map(data => ({ data, timestamp: new Date() })),
         );
     }
 }
