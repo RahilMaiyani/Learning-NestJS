@@ -3,6 +3,7 @@ import { Task, TasksService } from './tasks.service.ts';
 import { CreateTaskDto } from './dto/create-task.dto.ts';
 import { UpdateTaskDto } from './dto/update-task-dto.ts';
 import { ApiKeyGuard } from '../guards/api-key.guard.ts';
+import { ClientIp } from '../decorators/client-ip.decorator.ts';
 
 @Controller('tasks')
 export class TasksController {
@@ -10,7 +11,8 @@ export class TasksController {
     constructor(private readonly tasksService: TasksService) { }
 
     @Get()
-    getAllTasks(): Task[] {
+    getAllTasks(@ClientIp() ip: string): Task[] {
+        console.log(`[TasksController] Request recived from IP: ${ip}`);
         return this.tasksService.findAll();
     }
 
