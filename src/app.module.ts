@@ -4,12 +4,14 @@ import { AppService } from './app.service.ts';
 import { TasksModule } from './tasks/tasks.module.ts';
 import { ConfigModule } from '@nestjs/config';
 import { RequestIdMiddleware } from './middlewares/request-id.middleware.ts';
+import { PrismaModule } from './prisma/prisma.module.ts';
 
 @Module({
-  imports:
-    [ConfigModule.forRoot({ isGlobal: true }),
-      TasksModule,
-    ],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    TasksModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
