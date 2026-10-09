@@ -14,31 +14,33 @@ export class TasksService {
     //     { id: '2', title: "Example 2", isCompleted: false },
     // ];
 
-    async findAll(): Promise<Task[]> {
+    async findAll(userId: string): Promise<Task[]> {
         return this.prisma.task.findMany({
+            where: { userId },
             orderBy: { createdAt: 'desc' },
         });
     }
 
-    async findById(id: string): Promise<Task> {
-        const task = await this.prisma.task.findUnique({ where: { id } });
+    async findById(id: string, userId: string): Promise<Task> {
+        const task = await this.prisma.task.findUnique({ where: { id, userId } });
         if (!task) {
             throw new NotFoundException(`Task with ID : "${id}: not found`);
         }
         return task;
     }
 
-    async create(createTaskDto: CreateTaskDto): Promise<Task> {
+    async create(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
         return this.prisma.task.create({
             data: {
                 title: createTaskDto.title,
                 description: createTaskDto.description,
+                userId,
             }
         })
     }
 
-    async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
-        await this.findById(id);
+    async update(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<Task> {
+        await this.findById(id, userId);
 
         return this.prisma.task.update({
             where: { id },
@@ -46,8 +48,8 @@ export class TasksService {
         });
     }
 
-    async delete(id: string): Promise<{ message: string }> {
-        await this.findById(id);
+    async delete(id: string, userId: string): Promise<{ message: string }> {
+        await this.findById(id, userId);
 
         await this.prisma.task.delete({
             where: { id },

@@ -5,37 +5,40 @@ import { UpdateTaskDto } from './dto/update-task-dto.ts';
 import { ApiKeyGuard } from '../guards/api-key.guard.ts';
 import { ClientIp } from '../decorators/client-ip.decorator.ts';
 import { Task } from '../generated/prisma/browser.ts';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard.ts';
+import { AuthenticatedUser, CurrentUser } from '../decorators/current-user.decorator.ts';
 
 @Controller('tasks')
+@UseGuards(JwtAuthGuard)
 export class TasksController {
 
     constructor(private readonly tasksService: TasksService) { }
 
     @Get()
-    getAllTasks(@ClientIp() ip: string): Promise<Task[]> {
-        console.log(`[TasksController] Request recived from IP: ${ip}`);
-        return this.tasksService.findAll();
+    getAllTasks(@ClientIp() ip: string, @CurrentUser() user: AuthenticatedUser): Promise<Task[]> {
+        console.log(`[TasksController] User ${user.email} from IP ${ip}`);
+        return this.tasksService.findAll(user.sub);
     }
 
     @Get(':id')
-    getTaskById(@Param('id') id: string): Promise<Task> {
-        return this.tasksService.findById(id);
+    getTaskById(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser): Promise<Task> {
+        return this.tasksService.findById(id, user.sub);
     }
 
     @Post()
-    createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-        return this.tasksService.create(createTaskDto);
+    createTask(@Body() createTaskDto: CreateTaskDto, @CurrentUser() user: AuthenticatedUser): Promise<Task> {
+        return this.tasksService.create(createTaskDto, user.sub);
     }
 
     @Patch(':id')
-    updateTask(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto): Promise<Task> {
-        return this.tasksService.update(id, updateTaskDto);
+    updateTask(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @CurrentUser() user: AuthenticatedUser): Promise<Task> {
+        return this.tasksService.update(id, updateTaskDto, user.sub);
     }
 
     @Delete(':id')
     @UseGuards(ApiKeyGuard)
     @HttpCode(HttpStatus.OK)
-    deleteTask(@Param('id') id: string) {
-        return this.tasksService.delete(id);
+    deleteTask(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+        return this.tasksService.delete(id, user.sub);
     }
 }
