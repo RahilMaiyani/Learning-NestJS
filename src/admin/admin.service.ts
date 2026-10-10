@@ -65,6 +65,29 @@ export class AdminService {
             messsage: "Roles updated successfully",
             updatedUser
         }
-
     }
+
+    async getUserTasks(userId: string) {
+        const existing = await this.prismaService.user.findUnique({
+            where: { id: userId }
+        });
+
+        if (!existing) {
+            throw new NotFoundException(`User with ID: ${userId} not found.`);
+        }
+
+        const tasks = await this.prismaService.task.findMany({
+            where: { userId }
+        });
+
+        const completedTasks = tasks.filter((t) => t.isCompleted === true);
+
+        return {
+            messsage: `Tasks fetched successfully for the user: ${existing.email}`,
+            totalTasks: tasks.length,
+            totalCompletedTasks: completedTasks.length,
+            tasks,
+        }
+    }
+
 }

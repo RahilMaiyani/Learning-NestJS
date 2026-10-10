@@ -24,4 +24,9 @@ export class AdminController {
         return this.adminService.updateUserRole(id, role);
     }
 
+    @Get('user/:id/tasks')
+    getUserTasks(@Param('id') id: string) {
+        return this.adminService.getUserTasks(id);
+    }
+
 }
