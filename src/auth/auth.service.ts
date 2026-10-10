@@ -1,22 +1,23 @@
-import { ConflictException, Injectable, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.ts';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto.ts';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto.ts';
+import { ChangePasswordDto } from './dto/change-password.dto.ts';
 
 @Injectable()
 export class AuthService {
 
     constructor(
-        private readonly prisma: PrismaService,
+        private readonly prismaService: PrismaService,
         private readonly jwtService: JwtService,
     ) { }
 
     async register(registerDto: RegisterDto) {
         const { email, password, name, role } = registerDto;
 
-        const existingUser = await this.prisma.user.findUnique({
+        const existingUser = await this.prismaService.user.findUnique({
             where: { email }
         });
 
@@ -30,7 +31,7 @@ export class AuthService {
             throw new ConflictException("Invalid role value")
         }
 
-        const user = await this.prisma.user.create({
+        const user = await this.prismaService.user.create({
             data: {
                 email,
                 password: hashedPassword,
@@ -53,7 +54,7 @@ export class AuthService {
     async login(loginDto: LoginDto) {
         const { email, password } = loginDto;
 
-        const user = await this.prisma.user.findUnique({
+        const user = await this.prismaService.user.findUnique({
             where: { email }
         });
 
@@ -81,5 +82,40 @@ export class AuthService {
     private async generateToken(id: string, email: string, role = "user"): Promise<string> {
         const payload = { sub: id, email, role };
         return this.jwtService.signAsync(payload);
+    }
+
+    async changePassword(changePasswordDto: ChangePasswordDto, id: string) {
+        const { oldPassword, newPassword } = changePasswordDto;
+
+        if (oldPassword === newPassword) {
+            throw new BadRequestException("New password should be different from the previous one.")
+        }
+
+        const user = await this.prismaService.user.findUnique({
+            where: { id }
+        });
+
+        if (!user) {
+            throw new NotFoundException("Invalid: User not found.");
+        }
+
+        const isOldPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+
+        if (!isOldPasswordMatch) {
+            throw new UnauthorizedException("Invalid old password");
+        }
+
+        const newHashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await this.prismaService.user.update({
+            where: { id },
+            data: {
+                password: newHashedPassword,
+            }
+        });
+
+        return {
+            message: "Password has successfully changed",
+        }
     }
 }

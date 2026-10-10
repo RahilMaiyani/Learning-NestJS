@@ -7,6 +7,8 @@ import { RequestIdMiddleware } from './middlewares/request-id.middleware.ts';
 import { PrismaModule } from './prisma/prisma.module.ts';
 import { AuthModule } from './auth/auth.module.js';
 import { AdminModule } from './admin/admin.module.js';
+import { minutes, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -15,9 +17,22 @@ import { AdminModule } from './admin/admin.module.js';
     TasksModule,
     AuthModule,
     AdminModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: minutes(10),
+          limit: 200
+        }
+      ]
+    })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+  ],
 })
 
 export class AppModule implements NestModule {
