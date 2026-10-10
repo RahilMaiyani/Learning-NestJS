@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.ts';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto.ts';
@@ -14,7 +14,7 @@ export class AuthService {
     ) { }
 
     async register(registerDto: RegisterDto) {
-        const { email, password, name } = registerDto;
+        const { email, password, name, role } = registerDto;
 
         const existingUser = await this.prisma.user.findUnique({
             where: { email }
@@ -26,15 +26,20 @@ export class AuthService {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        if (role && !['admin', 'user'].includes(role)) {
+            throw new ConflictException("Invalid role value")
+        }
+
         const user = await this.prisma.user.create({
             data: {
                 email,
                 password: hashedPassword,
                 name,
+                role: !role ? 'user' : role,
             }
         });
 
-        const token = await this.generateToken(user.id, user.email);
+        const token = await this.generateToken(user.id, user.email, user.role);
 
         const { password: _, ...userWithoutPassword } = user;
 
@@ -62,7 +67,7 @@ export class AuthService {
             throw new UnauthorizedException("Invalid email or password");
         }
 
-        const token = await this.generateToken(user.id, email);
+        const token = await this.generateToken(user.id, email, user.role!);
 
         const { password: _, ...userWithoutPassword } = user;
 
@@ -73,8 +78,8 @@ export class AuthService {
         };
     }
 
-    private async generateToken(id: string, email: string): Promise<string> {
-        const payload = { sub: id, email };
+    private async generateToken(id: string, email: string, role = "user"): Promise<string> {
+        const payload = { sub: id, email, role };
         return this.jwtService.signAsync(payload);
     }
 }
