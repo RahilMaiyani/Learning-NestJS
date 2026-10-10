@@ -1,10 +1,15 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.ts';
+import { PaginatedTasksDto } from '../tasks/dto/paginated-tasks.dto.ts';
+import { TasksService } from '../tasks/tasks.service.ts';
 
 @Injectable()
 export class AdminService {
 
-    constructor(private readonly prismaService: PrismaService) { }
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly tasksService: TasksService
+    ) { }
 
     async deleteUser(id: string) {
         const existing = await this.prismaService.user.findUnique({
@@ -86,6 +91,46 @@ export class AdminService {
             messsage: `Tasks fetched successfully for the user: ${existing.email}`,
             totalTasks: tasks.length,
             totalCompletedTasks: completedTasks.length,
+            tasks,
+        }
+    }
+
+    async getPaginatedTasks(paginatedTaskDto: PaginatedTasksDto, userId: string | undefined) {
+        if (userId) {
+            const existing = await this.prismaService.user.findUnique({
+                where: { id: userId }
+            });
+            if (!existing) {
+                throw new NotFoundException(`User with ID: ${userId} not found.`);
+            }
+
+            return await this.tasksService.getPaginatedTasks(userId, paginatedTaskDto);
+        }
+        const { search, page = 1, limit = 10 } = paginatedTaskDto;
+        const skip = (page - 1) * limit;
+
+        const [totalTasks, tasks] = await Promise.all([
+            this.prismaService.task.count(),
+            this.prismaService.task.findMany(
+                {
+                    where: {
+                        title: { contains: search }
+                    },
+                    skip,
+                    take: limit,
+                    orderBy: { createdAt: 'desc' }
+                },
+            )
+        ]);
+        const totalPages = Math.ceil(totalTasks / limit);
+
+        return {
+            totalTasks,
+            totalPages,
+            page,
+            limit,
+            search,
+            hasNextPage: totalPages > page,
             tasks,
         }
     }

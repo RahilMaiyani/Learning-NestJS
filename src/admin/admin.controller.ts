@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service.ts';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard.ts';
 import { AdminRoleGuard } from '../guards/admin-role.guard.ts';
+import { PaginatedTasksDto } from '../tasks/dto/paginated-tasks.dto.ts';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminRoleGuard)
@@ -27,6 +28,11 @@ export class AdminController {
     @Get('user/:id/tasks')
     getUserTasks(@Param('id') id: string) {
         return this.adminService.getUserTasks(id);
+    }
+
+    @Get('tasks/paginated')
+    getPaginatedTasks(@Query() paginatedTaskDto: PaginatedTasksDto, @Body('userId') userId: string | undefined) {
+        return this.adminService.getPaginatedTasks(paginatedTaskDto, userId);
     }
 
 }

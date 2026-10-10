@@ -62,24 +62,26 @@ export class TasksService {
     async getPaginatedTasks(userId: string, paginatedTaskDto: PaginatedTasksDto) {
         const { search, page = 1, limit = 10 } = paginatedTaskDto;
         const skip = (page - 1) * limit;
-        const totalTasks = await this.prismaService.task.count({
-            where: {
-                userId
-            }
-        });
-        const totalPages = Math.ceil(totalTasks / limit);
 
-        const tasks = await this.prismaService.task.findMany(
-            {
+        const [totalTasks, tasks] = await Promise.all([
+            this.prismaService.task.count({
                 where: {
-                    userId,
-                    title: { contains: search }
+                    userId
+                }
+            }),
+            this.prismaService.task.findMany(
+                {
+                    where: {
+                        userId,
+                        title: { contains: search }
+                    },
+                    skip,
+                    take: limit,
+                    orderBy: { createdAt: 'desc' }
                 },
-                skip,
-                take: limit,
-                orderBy: { createdAt: 'desc' }
-            },
-        );
+            )
+        ]);
+        const totalPages = Math.ceil(totalTasks / limit);
 
         return {
             totalTasks,
