@@ -5,6 +5,7 @@ import { RegisterDto } from './dto/register.dto.ts';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto.ts';
 import { ChangePasswordDto } from './dto/change-password.dto.ts';
+import { emit } from 'node:process';
 
 @Injectable()
 export class AuthService {
@@ -116,6 +117,24 @@ export class AuthService {
 
         return {
             message: "Password has successfully changed",
+        }
+    }
+
+    async getMyInfo(userId: string) {
+        const [user, totalTasks, completedTasks] = await Promise.all([
+            this.prismaService.user.findUnique({ where: { id: userId } }),
+            this.prismaService.task.count({ where: { userId } }),
+            this.prismaService.task.count({ where: { userId, isCompleted: true } })
+        ]);
+
+        return {
+            id: userId,
+            email: user?.email,
+            name: user?.name,
+            role: user?.role,
+            totalTasks,
+            completedTasks,
+            createdAt: user?.createdAt,
         }
     }
 }

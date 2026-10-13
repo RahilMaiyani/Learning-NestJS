@@ -3,7 +3,6 @@ import { CreateTaskDto } from './dto/create-task.dto.ts';
 import { UpdateTaskDto } from './dto/update-task-dto.ts';
 import { PrismaService } from '../prisma/prisma.service.ts';
 import { Task } from '../generated/prisma/browser.ts';
-import { contains } from 'class-validator';
 import { PaginatedTasksDto } from './dto/paginated-tasks.dto.ts';
 
 @Injectable()

@@ -135,4 +135,22 @@ export class AdminService {
         }
     }
 
+    async deleteTask(taskId: string) {
+        const existing = await this.prismaService.task.findUnique({
+            where: { id: taskId }
+        });
+
+        if (!existing) {
+            throw new NotFoundException(`Task with ID: ${taskId} not found.`);
+        }
+
+        await this.prismaService.task.delete({
+            where: { id: taskId }
+        });
+
+        return {
+            message: "Task deleted successfully"
+        }
+    }
+
 }
