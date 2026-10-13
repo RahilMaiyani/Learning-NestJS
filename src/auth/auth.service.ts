@@ -5,7 +5,6 @@ import { RegisterDto } from './dto/register.dto.ts';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto.ts';
 import { ChangePasswordDto } from './dto/change-password.dto.ts';
-import { emit } from 'node:process';
 
 @Injectable()
 export class AuthService {
@@ -89,7 +88,7 @@ export class AuthService {
         const { oldPassword, newPassword } = changePasswordDto;
 
         if (oldPassword === newPassword) {
-            throw new BadRequestException("New password should be different from the previous one.")
+            throw new BadRequestException("New password should be different from the previous one.");
         }
 
         const user = await this.prismaService.user.findUnique({

@@ -3,6 +3,7 @@ import { AdminService } from './admin.service.ts';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard.ts';
 import { AdminRoleGuard } from '../guards/admin-role.guard.ts';
 import { PaginatedTasksDto } from '../tasks/dto/paginated-tasks.dto.ts';
+import { PaginatedUserDto } from './dto/paginated-user.dto.ts';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminRoleGuard)
@@ -38,6 +39,11 @@ export class AdminController {
     @Delete('tasks/:id')
     deleteTask(@Param('id') taskId: string) {
         return this.adminService.deleteTask(taskId);
+    }
+
+    @Get('paginated/users')
+    getPaginatedUsers(@Query() paginatedUserDto: PaginatedUserDto) {
+        return this.adminService.getPaginatedUsers(paginatedUserDto);
     }
 
 }

@@ -2,6 +2,8 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { PrismaService } from '../prisma/prisma.service.ts';
 import { PaginatedTasksDto } from '../tasks/dto/paginated-tasks.dto.ts';
 import { TasksService } from '../tasks/tasks.service.ts';
+import { contains } from 'class-validator';
+import { PaginatedUserDto } from './dto/paginated-user.dto.ts';
 
 @Injectable()
 export class AdminService {
@@ -150,6 +152,32 @@ export class AdminService {
 
         return {
             message: "Task deleted successfully"
+        }
+    }
+
+    async getPaginatedUsers(paginatedUserDto: PaginatedUserDto) {
+        const { search, page = 1, limit = 10 } = paginatedUserDto;
+        const skip = (page - 1) * limit;
+
+        const [totalUsers, users] = await Promise.all([
+            this.prismaService.user.count(),
+            this.prismaService.user.findMany({
+                where: { email: { contains: search } },
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            })
+        ]);
+
+        const totalPages = Math.ceil(totalUsers / limit);
+        return {
+            totalUsers,
+            totalPages,
+            page,
+            limit,
+            search,
+            hasNextPage: totalPages > page,
+            users
         }
     }
 
