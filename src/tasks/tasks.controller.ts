@@ -16,7 +16,7 @@ export class TasksController {
     constructor(private readonly tasksService: TasksService) { }
 
     @Get()
-    getAllTasks(@ClientIp() ip: string, @CurrentUser() user: AuthenticatedUser): Promise<Task[]> {
+    getAllTasks(@ClientIp() ip: string, @CurrentUser() user: AuthenticatedUser) {
         console.log(`[TasksController] User ${user.email} from IP ${ip}`);
         return this.tasksService.findAll(user.sub);
     }
@@ -46,6 +46,11 @@ export class TasksController {
     @Get('paginated/tasks')
     getPaginatedTasks(@Query() paginatedTaskDto: PaginatedTasksDto, @CurrentUser() user: AuthenticatedUser) {
         return this.tasksService.getPaginatedTasks(user.sub, paginatedTaskDto);
+    }
+
+    @Delete('delete/completed')
+    clearCompletedTasks(@CurrentUser() user: AuthenticatedUser) {
+        return this.tasksService.clearCompletedTasks(user.sub);
     }
 
 }

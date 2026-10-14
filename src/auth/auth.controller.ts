@@ -6,6 +6,7 @@ import { ChangePasswordDto } from './dto/change-password.dto.ts';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard.ts';
 import { AuthenticatedUser, CurrentUser } from '../decorators/current-user.decorator.ts';
 import { minutes, Throttle } from '@nestjs/throttler';
+import { UpdateUserDto } from './dto/update-user.dto.ts';
 
 @Controller('auth')
 @Throttle({ default: { limit: 30, ttl: minutes(30) } })
@@ -34,6 +35,12 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     getMyInfo(@CurrentUser() user: AuthenticatedUser) {
         return this.authService.getMyInfo(user.sub);
+    }
+
+    @Post("update/profile")
+    @UseGuards(JwtAuthGuard)
+    updateUserInfo(@Body() updateUserDto: UpdateUserDto, @CurrentUser() user: AuthenticatedUser) {
+        return this.authService.updateUserInfo(updateUserDto, user.sub);
     }
 
 }

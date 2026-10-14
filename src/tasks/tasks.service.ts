@@ -15,11 +15,16 @@ export class TasksService {
     //     { id: '2', title: "Example 2", isCompleted: false },
     // ];
 
-    async findAll(userId: string): Promise<Task[]> {
-        return this.prismaService.task.findMany({
+    async findAll(userId: string) {
+        const result = await this.prismaService.task.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
         });
+
+        return {
+            totalTasks: result.length,
+            tasks: result
+        }
     }
 
     async findById(id: string, userId: string): Promise<Task> {
@@ -90,6 +95,19 @@ export class TasksService {
             search,
             hasNextPage: totalPages > page,
             tasks,
+        }
+    }
+
+    async clearCompletedTasks(userId: string) {
+        const result = await this.prismaService.task.deleteMany({
+            where: {
+                userId,
+                isCompleted: true
+            }
+        });
+
+        return {
+            message: `Total ${result.count} Completed tasks cleared succesfully.`
         }
     }
 }

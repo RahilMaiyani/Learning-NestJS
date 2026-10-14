@@ -5,6 +5,7 @@ import { RegisterDto } from './dto/register.dto.ts';
 import bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto.ts';
 import { ChangePasswordDto } from './dto/change-password.dto.ts';
+import { UpdateUserDto } from './dto/update-user.dto.ts';
 
 @Injectable()
 export class AuthService {
@@ -134,6 +135,19 @@ export class AuthService {
             totalTasks,
             completedTasks,
             createdAt: user?.createdAt,
+        }
+    }
+
+    async updateUserInfo(updateUserDto: UpdateUserDto, userId: string) {
+        await this.prismaService.user.update({
+            where: { id: userId },
+            data: {
+                name: updateUserDto.name,
+            }
+        });
+
+        return {
+            message: "Username updated successfully"
         }
     }
 }
