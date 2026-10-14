@@ -31,7 +31,7 @@ export class AdminService {
         }
     }
 
-    async getAllUsers() {
+    async getAllUsers(token: string) {
         const users = await this.prismaService.user.findMany({
             select: { id: true, email: true, name: true, role: true, createdAt: true, updatedAt: true },
             orderBy: { updatedAt: 'desc' }
@@ -40,6 +40,7 @@ export class AdminService {
         return {
             message: "Users fetched successfully",
             users: users.length === 0 ? [] : users,
+            token,
         }
     }
 

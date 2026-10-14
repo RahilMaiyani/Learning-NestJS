@@ -1,11 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AdminService } from './admin.service.ts';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard.ts';
 import { AdminRoleGuard } from '../guards/admin-role.guard.ts';
 import { PaginatedTasksDto } from '../tasks/dto/paginated-tasks.dto.ts';
 import { PaginatedUserDto } from './dto/paginated-user.dto.ts';
+import { GetAccessToken } from '../decorators/access-token.decorator.ts';
+import { PerformanceInterceptor } from '../interceptors/performance.interceptor.ts';
+import { LoggingInterceptor } from '../interceptors/logging.interceptor.ts';
 
 @Controller('admin')
+@UseInterceptors(PerformanceInterceptor)
 @UseGuards(JwtAuthGuard, AdminRoleGuard)
 export class AdminController {
 
@@ -17,8 +21,8 @@ export class AdminController {
     }
 
     @Get("all")
-    getAllUsers() {
-        return this.adminService.getAllUsers();
+    getAllUsers(@GetAccessToken() token: string) {
+        return this.adminService.getAllUsers(token);
     }
 
     @Patch("update-role/:id")

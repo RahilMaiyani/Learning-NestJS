@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { TasksService } from './tasks.service.ts';
 import { CreateTaskDto } from './dto/create-task.dto.ts';
 import { UpdateTaskDto } from './dto/update-task-dto.ts';
@@ -16,7 +16,8 @@ export class TasksController {
     constructor(private readonly tasksService: TasksService) { }
 
     @Get()
-    getAllTasks(@ClientIp() ip: string, @CurrentUser() user: AuthenticatedUser) {
+    getAllTasks(@ClientIp() ip: string, @CurrentUser() user: AuthenticatedUser, @Query('test', ParseIntPipe) test: number) {
+        console.log("[TaskController] [ParseIntPipe] Test:", test);
         console.log(`[TasksController] User ${user.email} from IP ${ip}`);
         return this.tasksService.findAll(user.sub);
     }

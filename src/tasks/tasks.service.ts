@@ -21,8 +21,11 @@ export class TasksService {
             orderBy: { createdAt: 'desc' },
         });
 
+        const completed = result.filter((t) => t.isCompleted);
+
         return {
             totalTasks: result.length,
+            totalCompleted: completed.length,
             tasks: result
         }
     }
